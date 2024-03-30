@@ -36,3 +36,4 @@ class LSTM_LM(nn.Module):
 
         return out
 
+    def generate(self, start, length):
