@@ -2,13 +2,18 @@ class vocab():
     def __init__(self, data_set):
         self.word2id = {}
         self.id2word = {}
+        self.vocab_size = 0
         for word in data_set:
             if word not in self.word2id:
-                self.word2id[word] = len(self.word2id)
-                self.id2word[self.word2id[word]] = word
+                self.word2id[word] = self.vocab_size
+                self.id2word[self.vocab_size] = word
+                self.vocab_size += 1
+        self.word2id['<end>'] = self.vocab_size
+        self.id2word[self.vocab_size + 1] = '<end>'
+        self.vocab_size += 1
 
     def __len__(self):
-        return len(self.word2id)
+        return self.vocab_size
     
     def sentence2ids(self, sentence):
         char_list = list(sentence)
