@@ -17,14 +17,14 @@ class LSTM_LM(nn.Module):
         self.fc = nn.Linear(hidden_size, vocab_size)
 
     def forward(self, x):
-        self.limit = x.size(1)
+        limit = x.size(1)
         out = torch.ones(x.size(0), self.limit)
         h = torch.zeros(self.num_layers, x.size(0), self.hidden_size)
         c = torch.zeros(self.num_layers, x.size(0), self.hidden_size)
 
         prev_output = self.embedding(x[:, 0].unsqueeze(1))
 
-        for t in range(self.limit):
+        for t in range(limit):
             output, (h, c) = self.lstm(prev_output, (h, c))
             output = F.softmax(self.fc(output))
             out[:, t + 1] = output[:, x[:, t + 1].unsqueeze(1)]
@@ -36,4 +36,21 @@ class LSTM_LM(nn.Module):
 
         return out
 
-    def generate(self, start, length):
+    # 这里只实现无batch的生成函数，带batch的生成函数待进一步研究
+    def generate(self, start):
+        output = torch.zeros(1)
+        output[0] = start
+        h = torch.zeros(self.num_layers, 1, self.hidden_size)
+        c = torch.zeros(self.num_layers, 1, self.hidden_size)
+
+        prev_output = self.embedding(start)
+
+        for t in range(self.limit):
+            output, (h, c) = self.lstm(prev_output, (h, c))
+            output = F.softmax(self.fc(output))
+            prediction = torch.argmax(output)
+            output = output.cat((output, prediction))
+            if prediction == self.vocab_size - 1:
+                break
+
+        return output
