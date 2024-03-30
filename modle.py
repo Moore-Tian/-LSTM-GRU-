@@ -36,6 +36,9 @@ class LSTM_LM(nn.Module):
 
         return out
 
+    def loss(out):
+        return torch.sum(torch.log(out))
+
     # 这里只实现无batch的生成函数，带batch的生成函数待进一步研究
     def generate(self, start):
         output = torch.zeros(1)

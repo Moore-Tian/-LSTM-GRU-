@@ -1,4 +1,4 @@
-class vocab():
+class Vocab():
     def __init__(self, data_set):
         self.word2id = {}
         self.id2word = {}
@@ -16,8 +16,7 @@ class vocab():
         return self.vocab_size
     
     def sentence2ids(self, sentence):
-        char_list = list(sentence)
-        return [self.word2id[word] for word in char_list]
+        return [self.word2id[word] for word in sentence]
 
     def ids2sentence(self, ids):
         return ''.join([self.id2word[id] for id in ids])

@@ -1,7 +1,7 @@
 import torch
 from torch.nn.utils.rnn import pad_sequence
 import random
-from vocab import vocab
+from vocab import Vocab
 
 
 def get_dataset(file_path):
@@ -12,7 +12,7 @@ def get_dataset(file_path):
     return char_list
 
 
-def data_process(file_path):
+def data_process(file_path, vocab):
     poems = []  # 存储每首诗的列表
     current_poem = ""  # 当前正在录入的诗的字符串
 
@@ -35,12 +35,12 @@ def data_process(file_path):
     if current_poem != "":
         poems.append(current_poem)
 
-    data_set = [torch.tensor(vocab.sentence2ids((list(poem).append("<end>")))) for poem in poems]
+    data_set = [torch.tensor(vocab.sentence2ids(list(poem) + ["<end>"])) for poem in poems]
 
     return data_set
 
 
-def make_batch(data_set, batch_size):
+def make_batch(data_set, batch_size, vocab):
     batch = random.sample(data_set, k=batch_size)
     padded_batch = pad_sequence(batch, batch_first=True, padding_value=vocab.vocab_size - 1)
     return padded_batch
