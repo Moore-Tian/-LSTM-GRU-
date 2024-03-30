@@ -9,3 +9,10 @@ class vocab():
 
     def __len__(self):
         return len(self.word2id)
+    
+    def sentence2ids(self, sentence):
+        char_list = list(sentence)
+        return [self.word2id[word] for word in char_list]
+
+    def ids2sentence(self, ids):
+        return ''.join([self.id2word[id] for id in ids])
