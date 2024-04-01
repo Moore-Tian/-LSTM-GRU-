@@ -1,7 +1,6 @@
 import torch
 from torch.nn.utils.rnn import pad_sequence
 import random
-from vocab import Vocab
 
 
 def get_dataset(file_path):

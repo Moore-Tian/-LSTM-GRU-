@@ -1,3 +1,6 @@
+from utils import get_dataset
+
+
 class Vocab():
     def __init__(self, data_set):
         self.word2id = {}

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 epochs = []
 loss_values = []
 
-with open('train.log', 'r') as file:
+with open("log/log.txt", 'r') as file:
     for line in file:
         epoch_loss = line.strip().split(' ')
         epoch = int(epoch_loss[1])
@@ -16,5 +16,5 @@ plt.plot(epochs, loss_values)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Loss vs. Epoch')
-plt.savefig('loss_vs_epoch.png')
+plt.savefig('loss_vs_epoch_3.png')
 plt.show()

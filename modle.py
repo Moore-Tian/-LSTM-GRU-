@@ -56,25 +56,55 @@ class LSTM_LM(nn.Module):
 
     def loss(self, out):
         return - torch.sum(torch.log(out)) / out.size(0)
+    
+    def save(self, path):
+        torch.save(self.state_dict(), path)
+
+    def load(self, path):
+        self.load_state_dict(torch.load(path))
 
     # 这里只实现无batch的生成函数，带batch的生成函数待进一步研究
     def generate(self, start):
-        output = torch.zeros(1)
-        output[0] = start
-        h = torch.zeros(self.num_layers, 1, self.hidden_size)
-        c = torch.zeros(self.num_layers, 1, self.hidden_size)
+        #   记序列长度为 L
+        #   词汇表大小为 V
+        #   隐藏层维数为 H
+        #   词嵌入维度为 E
+        #   start 为 scalar
 
+        # output = [1]
+        out = [start]
+        # start = [1, 1, 1]
+        if self.device is not None:
+            start = torch.tensor(start).unsqueeze(0).unsqueeze(0).to(self.device)
+            h = torch.zeros(self.num_layers, 1, self.hidden_size).to(self.device)
+            c = torch.zeros(self.num_layers, 1, self.hidden_size).to(self.device)
+        else:
+            start = torch.tensor(start).unsqueeze(0).unsqueeze(0)
+            h = torch.zeros(self.num_layers, 1, self.hidden_size)
+            c = torch.zeros(self.num_layers, 1, self.hidden_size)
+
+        # prev_output = [1, 1, E]
         prev_output = self.embedding(start)
 
-        for t in range(self.limit):
+        for t in range(self.limit - 1):
+            # output = [1, 1, H]
             output, (h, c) = self.lstm(prev_output, (h, c))
+            # output = [1, 1, H]，但是是按行的概率分布
             output = F.softmax(self.fc(output))
-            prediction = torch.argmax(output)
-            output = output.cat((output, prediction))
-            if prediction == self.vocab_size - 1:
+            """ print("output.shape: ", output.shape) """
+            # prediction = [1, 1, ]
+            prediction = torch.argmax(output, 2)
+            """ print("prediction.shape: ", prediction.shape) """
+            out.append(prediction.item())
+            if prediction.item() == self.vocab_size - 1:
                 break
 
-        return output
+        return out
+    
+    def calculate_perplexity(self, x):
+        out = self.forward(x)
+        return torch.prod(out) ** (- 1/ out.numel())
+
     
     """     def forward(self, x):
         limit = x.size(1)
