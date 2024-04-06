@@ -1,10 +1,13 @@
-import matplotlib.pyplot as plt
+import torch
+import torch.nn
+from modle import *
+from utils import *
+from vocab import *
 
 
-loss_values = [1000, 900, 800, 700, 600, 500, 400, 300, 200, 100, 0]
-plt.plot(loss_values)
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.title('Loss vs. Epoch')
+file_path = "dataset/poetryFromTang.txt"
 
-plt.show()
+char_list = get_dataset(file_path)
+print(char_list)
+
+vocab = Vocab(char_list)

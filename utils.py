@@ -6,7 +6,7 @@ import random
 def get_dataset(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:
         content = f.read()
-    char_list = list(set(content))
+    char_list = sorted(list(set(content)))
 
     return char_list
 

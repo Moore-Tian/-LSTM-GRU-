@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import sys
 
 
 class LSTM_LM(nn.Module):
@@ -41,7 +40,7 @@ class LSTM_LM(nn.Module):
             out = torch.ones(x.size(0), limit)
             h = torch.zeros(self.num_layers, x.size(0), self.hidden_size)
             c = torch.zeros(self.num_layers, x.size(0), self.hidden_size)
-        
+
         # x = [B, L, E]
         emb_x = self.embedding(x)
         # output = [B, L, H]
@@ -56,7 +55,7 @@ class LSTM_LM(nn.Module):
 
     def loss(self, out):
         return - torch.sum(torch.log(out)) / out.size(0)
-    
+
     def save(self, path):
         torch.save(self.state_dict(), path)
 
@@ -64,7 +63,7 @@ class LSTM_LM(nn.Module):
         self.load_state_dict(torch.load(path))
 
     # 这里只实现无batch的生成函数，带batch的生成函数待进一步研究
-    def generate(self, start):
+    def generate(self, start, len):
         #   记序列长度为 L
         #   词汇表大小为 V
         #   隐藏层维数为 H
@@ -86,46 +85,19 @@ class LSTM_LM(nn.Module):
         # prev_output = [1, 1, E]
         prev_output = self.embedding(start)
 
-        for t in range(self.limit - 1):
+        for t in range(len - 1):
             # output = [1, 1, H]
             output, (h, c) = self.lstm(prev_output, (h, c))
             # output = [1, 1, H]，但是是按行的概率分布
-            output = F.softmax(self.fc(output))
-            """ print("output.shape: ", output.shape) """
+            output = F.softmax(self.fc(output), dim=2)
             # prediction = [1, 1, ]
             prediction = torch.argmax(output, 2)
-            """ print("prediction.shape: ", prediction.shape) """
             out.append(prediction.item())
             if prediction.item() == self.vocab_size - 1:
                 break
 
         return out
-    
+
     def calculate_perplexity(self, x):
         out = self.forward(x)
-        return torch.prod(out) ** (- 1/ out.numel())
-
-    
-    """     def forward(self, x):
-        limit = x.size(1)
-        if self.device is not None:
-            out = torch.ones(x.size(0), limit).to(self.device)
-            h = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(self.device)
-            c = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(self.device)
-        else:
-            out = torch.ones(x.size(0), limit)
-            h = torch.zeros(self.num_layers, x.size(0), self.hidden_size)
-            c = torch.zeros(self.num_layers, x.size(0), self.hidden_size)
-        prev_output = self.embedding(x[:, 0]).unsqueeze(1)
-        # 这里采用的是上一步的输出作为下一步的输入，我猜并不可靠，回头再改
-        for t in range(limit - 1):
-            output, (h, c) = self.lstm(prev_output, (h, c))
-            output = self.fc(output).squeeze(1)
-            max_vals, _ = torch.max(output, dim=1, keepdim=True)
-            output = F.softmax(output - max_vals, 1)
-            out[:, t + 1] = torch.gather(output, 1, x[:, t + 1].unsqueeze(1)).squeeze(1)
-            prediction = torch.argmax(output, dim=1)
-            # 本身这里我想多加个限制，当打出停止符时停止继续生成序列，但是不太好处理，故暂且搁置
-            prev_output = self.embedding(prediction).unsqueeze(1)
-
-        return out """
+        return torch.prod(out) ** (- 1 / out.numel())
